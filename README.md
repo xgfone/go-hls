@@ -6,7 +6,7 @@
 ![Minimum Go Version](https://img.shields.io/github/go-mod/go-version/xgfone/go-hls?label=Go%2B)
 ![Latest SemVer](https://img.shields.io/github/v/tag/xgfone/go-hls?sort=semver)
 
-An implementation of RFC8216 HLS.
+An golang implementation of RFC8216 HLS.
 
 ## Install
 
