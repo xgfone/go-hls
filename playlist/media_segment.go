@@ -63,3 +63,38 @@ func (s MediaSegment) AES128Decrypt(encryptedData, key []byte, removePadding boo
 	iv, _ := s.IV()
 	return aes128.Decrypt(encryptedData, key, iv, removePadding)
 }
+
+// GetSegmentIndexByMediaSequence returns the index of the media segment
+// whose the media sequence is equal to the given seq.
+//
+// Return -1 if not found.
+//
+// NOTE: It is only valid for the same media playlist.
+func (pl MediaPlayList) GetSegmentIndexByMediaSequence(seq uint64) (index int) {
+	index = int(seq - pl.MediaSequence)
+	if index < 0 || index >= len(pl.Segments) {
+		return -1
+	}
+
+	switch seg := &pl.Segments[index]; {
+	case seq < seg.MediaSequence:
+		segments := pl.Segments[:index+1]
+		for i := len(segments) - 1; i >= 0; i-- {
+			if segments[i].MediaSequence == seq {
+				index = i
+				break
+			}
+		}
+
+	case seg.MediaSequence < seq:
+		segments := pl.Segments[index+1:]
+		for i := range segments {
+			if segments[i].MediaSequence == seq {
+				index += 1 + i
+				break
+			}
+		}
+	}
+
+	return
+}
