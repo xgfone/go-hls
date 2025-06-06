@@ -184,7 +184,7 @@ func (v _HexSequence) encode(w io.Writer) error {
 		return errInvalidDecimalHexSeq
 	}
 
-	_, err := fmt.Fprintf(w, "0x%02X", v)
+	_, err := fmt.Fprintf(w, "0x%02X", []byte(v))
 	return err
 }
 

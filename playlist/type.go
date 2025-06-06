@@ -128,6 +128,19 @@ func (m XKeyMethod) validate() error {
 	}
 }
 
+// FormatIV formats the 16-octet bytes to a hexadecimal-sequence string.
+func FormatIV(iv []byte, strict bool) string {
+	if len(iv) != 16 && strict {
+		panic(errors.New("IV is not 16-octet bytes"))
+	}
+
+	var buf strings.Builder
+	buf.Grow(34)
+
+	_ = _HexSequence(iv).encode(&buf)
+	return buf.String()
+}
+
 type XKey struct {
 	Method  XKeyMethod // Required
 	URI     string
