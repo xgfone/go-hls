@@ -12,26 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package playlist is used to encode or decode the HLS playlist
-// based on the M3U8 format.
-package playlist
-
-import "io"
-
-// Define the playlist types.
-const (
-	PlayListTypeMaster = "Master"
-	PlayListTypeMedia  = "Media"
-)
-
-// PlayList is a playlist interface.
-type PlayList interface {
-	Type() string // Master or Media
-	MinVersion() uint64
-}
-
-// Parse reads the data from r and decodes it as a master or media playlist.
-func Parse(r io.Reader) (PlayList, error) {
-	var p _Parser
-	return p.Parse(r)
-}
+// Package aes128 provides some functions to encrypt or decrypt the data by AES-128.
+package aes128
