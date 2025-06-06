@@ -18,10 +18,15 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 )
 
 func isIntegerFloat64(v float64) bool {
 	return float64(int64(v)) == v
+}
+
+func float64ToDuration(v float64) time.Duration {
+	return time.Duration(v * float64(time.Second))
 }
 
 func checkAttributeName(name string) (err error) {

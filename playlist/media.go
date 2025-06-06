@@ -118,6 +118,7 @@ func (pl MediaPlayList) validate(minVersion uint64) (err error) {
 }
 
 func (pl *MediaPlayList) update() {
+	index := -1
 	lastdseq := pl.DiscontinuitySequence
 	lastmseq := pl.MediaSequence
 	for i := range pl.Segments {
@@ -129,10 +130,42 @@ func (pl *MediaPlayList) update() {
 			lastdseq++
 		}
 		s.DiscontinuitySequence = lastdseq
+
+		if index == -1 && !s.ProgramDateTime.IsZero() {
+			index = i
+		}
 	}
 
 	// Recover the Media Sequence Number parsed by #EXT-X-MEDIA-SEQUENCE.
 	if len(pl.Segments) > 0 {
 		pl.MediaSequence = pl.Segments[0].MediaSequence
+	}
+
+	if index > -1 {
+		pl._updateProgramDateTime(index)
+	}
+}
+
+func (pl *MediaPlayList) _updateProgramDateTime(index int) {
+	// 1. Backward
+	{
+		lasttime := pl.Segments[index].ProgramDateTime
+		for i := index - 1; i >= 0; i-- {
+			seg := &pl.Segments[i]
+			seg.ProgramDateTime = lasttime.Add(-float64ToDuration(seg.Duration))
+			lasttime = seg.ProgramDateTime
+		}
+	}
+
+	// 2. Forward
+	{
+		lasttime := pl.Segments[index].ProgramDateTime
+		for i, _len := index+1, len(pl.Segments); i < _len; i++ {
+			seg := &pl.Segments[i]
+			if seg.ProgramDateTime.IsZero() {
+				seg.ProgramDateTime = lasttime.Add(float64ToDuration(seg.Duration))
+			}
+			lasttime = seg.ProgramDateTime
+		}
 	}
 }

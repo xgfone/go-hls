@@ -14,7 +14,10 @@
 
 package playlist
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 func TestMediaSegmentIndex(t *testing.T) {
 	pl := MediaPlayList{
@@ -41,5 +44,43 @@ func TestMediaSegmentIndex(t *testing.T) {
 	}
 	if index := pl.GetSegmentIndexByMediaSequence(110); index != -1 {
 		t.Errorf("expect segment index %d, but got %d", -1, index)
+	}
+}
+
+func TestMediaSegmentProgramDateTime(t *testing.T) {
+	musttime := func(s string) time.Time {
+		t, err := time.ParseInLocation(time.DateTime, s, time.Local)
+		if err != nil {
+			panic(err)
+		}
+		return t
+	}
+
+	pl := MediaPlayList{
+		Segments: []MediaSegment{
+			{Duration: 1},
+			{Duration: 2},
+			{Duration: 3, ProgramDateTime: musttime("2025-06-07 00:01:10")},
+			{Duration: 4},
+			{Duration: 5},
+			{Duration: 6, ProgramDateTime: musttime("2025-06-07 00:01:30")},
+			{Duration: 7},
+		},
+	}
+	pl.update()
+
+	for i, s := range pl.Segments {
+		dt := s.ProgramDateTime.Format(time.DateTime)
+		switch j := i + 1; {
+		case j == 1 && dt == "2025-06-07 00:01:07":
+		case j == 2 && dt == "2025-06-07 00:01:08":
+		case j == 3 && dt == "2025-06-07 00:01:10":
+		case j == 4 && dt == "2025-06-07 00:01:14":
+		case j == 5 && dt == "2025-06-07 00:01:19":
+		case j == 6 && dt == "2025-06-07 00:01:30":
+		case j == 7 && dt == "2025-06-07 00:01:37":
+		default:
+			t.Errorf("%d: unexpect time '%s'", i, dt)
+		}
 	}
 }

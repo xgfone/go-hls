@@ -36,3 +36,10 @@ func TestSplitAttributes(t *testing.T) {
 	expectAttrs(t, []string{"A=1", `CODECS="mp4a"`}, splitAttributes(`A=1,CODECS="mp4a"`, -1))
 	expectAttrs(t, []string{"A=1", `CODECS="mp4a,mp4b"`}, splitAttributes(`A=1,CODECS="mp4a,mp4b"`, -1))
 }
+
+func TestFloat64ToDuration(t *testing.T) {
+	duration := float64ToDuration(1.2).String()
+	if duration != "1.2s" {
+		t.Errorf("expect duration %s, but got %s", "1.2s", duration)
+	}
+}
