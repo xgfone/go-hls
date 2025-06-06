@@ -49,7 +49,7 @@ func (pl MasterPlayList) MinVersion() uint64 {
 	if pl.Version > 0 {
 		return pl.Version
 	}
-	return 1
+	return pl.minVersion()
 }
 
 // Output encodes the master playlist as the M3U8 format to w.
@@ -58,6 +58,20 @@ func (pl MasterPlayList) Output(w io.Writer) error {
 		return err
 	}
 	return pl.encode(w)
+}
+
+func (pl MasterPlayList) minVersion() (minVersion uint64) {
+	setVersion := func(version uint64) {
+		minVersion = max(minVersion, version)
+	}
+
+	for _, seg := range pl.Segments {
+		for _, m := range seg.Medias {
+			setVersion(m.minVersion())
+		}
+	}
+
+	return
 }
 
 func (pl MasterPlayList) validate() (err error) {

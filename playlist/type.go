@@ -386,6 +386,16 @@ func (x XMedia) IsZero() bool {
 	return x.Type == ""
 }
 
+func (x XMedia) minVersion() uint64 {
+	switch {
+	case strings.HasPrefix(x.InstreamId, "SERVICE"):
+		return 7
+
+	default:
+		return 1
+	}
+}
+
 func (x XMedia) encode(w io.Writer) (err error) {
 	if err = x.check(); err != nil {
 		return
