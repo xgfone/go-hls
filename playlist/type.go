@@ -147,7 +147,7 @@ func FormatIV(iv []byte, strict bool) string {
 type XKey struct {
 	Method  XKeyMethod // Required
 	URI     string
-	IV      string
+	IV      string // a hexadecimal-sequence string with the prefix "0x" or "0X".
 	Format  string
 	Version string
 }

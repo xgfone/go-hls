@@ -1,6 +1,7 @@
 package playlist
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
@@ -46,6 +47,19 @@ type MediaSegment struct {
 	DiscontinuitySequence uint64 // Cannot be encoded
 
 	Discontinuity bool
+}
+
+// IV try to decode the iv from a hexadecimal-sequence string to a 16-octet bytes.
+func (s MediaSegment) IV() (data []byte, err error) {
+	if s.Key.IV != "" {
+		var seq _HexSequence
+		err = seq.decode(s.Key.IV)
+		data = []byte(seq)
+	} else {
+		data = make([]byte, 16)
+		binary.BigEndian.PutUint64(data[8:], s.MediaSequence)
+	}
+	return
 }
 
 // MediaPlayList represents a media playlist, which implemented the PlayList interface.
