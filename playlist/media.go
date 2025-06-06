@@ -156,17 +156,23 @@ func (pl MediaPlayList) validate(minVersion uint64) (err error) {
 }
 
 func (pl *MediaPlayList) update() {
+	lastdseq := pl.DiscontinuitySequence
 	for i := range pl.Segments {
 		s := &pl.Segments[i]
 		s.MediaSequence = pl.calcMediaSequence()
-		s.DiscontinuitySequence = pl.calcDiscontinuitySequence()
+
+		if s.Discontinuity {
+			lastdseq++
+		}
+		s.DiscontinuitySequence = lastdseq
+	}
+
+	// Recover the Media Sequence Number parsed by #EXT-X-MEDIA-SEQUENCE.
+	if len(pl.Segments) > 0 {
+		pl.MediaSequence = pl.Segments[0].MediaSequence
 	}
 }
 
 func (pl *MediaPlayList) calcMediaSequence() uint64 {
 	return atomic.AddUint64(&pl.MediaSequence, 1) - 1
-}
-
-func (pl *MediaPlayList) calcDiscontinuitySequence() uint64 {
-	return atomic.AddUint64(&pl.DiscontinuitySequence, 1) - 1
 }
