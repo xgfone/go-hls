@@ -29,6 +29,13 @@ func (pl MediaPlayList) encode(w io.Writer) (err error) {
 		}
 
 		switch {
+		case seg.URI == "":
+			panic("missing URI in MediaSegment")
+		case seg.Duration <= 0:
+			panic("missing Duration in MediaSegment")
+		}
+
+		switch {
 		case xkey.IsZero(), xkey != seg.Key:
 			xkey = seg.Key
 

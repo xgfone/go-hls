@@ -28,7 +28,48 @@ func splitAttributes(s string, maxnum int) []string {
 	if s == "" {
 		return []string{""}
 	}
-	return strings.SplitN(s, ",", maxnum)
+
+	if maxnum <= 0 {
+		maxnum = strings.Count(s, ",") + 1
+	}
+
+	ss := make([]string, 0, maxnum)
+
+	var readstr bool
+	var start int
+
+LOOP:
+	for i, c := range s {
+		// (xgf): We cannot directly use strings.Split(s, ",")，
+		// becuase the attribute value may contain the comma character ",".
+		switch c {
+		case '"':
+			readstr = !readstr
+			if readstr {
+				continue LOOP
+			}
+
+		case ',':
+			if readstr {
+				continue LOOP
+			}
+
+			if len(ss) == maxnum-1 {
+				ss = append(ss, s[start:])
+				start = len(s)
+				break LOOP
+			} else {
+				ss = append(ss, s[start:i])
+				start = i + 1
+			}
+		}
+	}
+
+	if start < len(s) {
+		ss = append(ss, s[start:])
+	}
+
+	return ss
 }
 
 func parseAttribute(s string, name, value *string) (err error) {
@@ -52,6 +93,22 @@ func parseAttribute(s string, name, value *string) (err error) {
 	}
 
 	*name = _name.get()
+	return
+}
+
+func iterAttributes(s string, maxnum int, fn func(name, value string) (err error)) (err error) {
+	items := splitAttributes(s, maxnum)
+	for _, item := range items {
+		var name, value string
+		if err = parseAttribute(item, &name, &value); err != nil {
+			return
+		}
+
+		if err = fn(name, value); err != nil {
+			err = fmt.Errorf("%s: %w", name, err)
+			return
+		}
+	}
 	return
 }
 

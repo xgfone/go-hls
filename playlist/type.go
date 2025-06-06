@@ -6,7 +6,6 @@ import (
 	"io"
 	"strconv"
 	"strings"
-	"time"
 )
 
 var (
@@ -14,26 +13,8 @@ var (
 	errInvalidKeyMethod  = errors.New("invalid key method")
 	errInvalidByteRange  = errors.New("invalid byte range")
 	errInvalidResolution = errors.New("invalid resolution")
+	errInvalidHDCPLevel  = errors.New("invalid HDCP level")
 )
-
-/// ----------------------------------------------------------------------- ///
-
-type MediaSegment struct {
-	URI   string // Required.
-	Title string
-
-	Duration  float64 // Required. Unit: Second
-	ByteRange XByteRange
-	Key       XKey
-	Map       XMap
-
-	ProgramDateTime time.Time
-
-	MediaSequence         uint64 // Cannot be encoded
-	DiscontinuitySequence uint64 // Cannot be encoded
-
-	Discontinuity bool
-}
 
 /// ----------------------------------------------------------------------- ///
 
@@ -92,9 +73,13 @@ type XResolution struct {
 	Height uint64 // Optional. Unit: byte
 }
 
-func (v *XResolution) valid() bool { return v.Width > 0 && v.Height > 0 }
+func (v XResolution) IsZero() bool {
+	return v.Width == 0 || v.Height == 0
+}
 
-func (v *XResolution) encode(w io.Writer) error {
+func (v XResolution) valid() bool { return v.Width > 0 && v.Height > 0 }
+
+func (v XResolution) encode(w io.Writer) error {
 	if !v.valid() {
 		return errInvalidResolution
 	}
@@ -369,24 +354,28 @@ type XMedia struct {
 	Forced     bool
 }
 
-func (x *XMedia) encode(w io.Writer) (err error) {
+func (x XMedia) IsZero() bool {
+	return x.Type == ""
+}
+
+func (x XMedia) encode(w io.Writer) (err error) {
 	if err = x.check(); err != nil {
 		return
 	}
 
 	return tryWriteAttrs(w, nil, true,
 		_NewAttr("TYPE", newEnum(x.Type)),
-		_NewAttr("NAME", _QuotedString(x.Name)),
 		_NewAttr("GROUP-ID", _QuotedString(x.GroupId)),
-		_NewAttr("GLANGUAGE", _QuotedString(x.Language)),
+		_NewAttr("NAME", _QuotedString(x.Name)),
+		_NewAttr("LANGUAGE", _QuotedString(x.Language)),
 		_NewAttr("ASSOC-LANGUAGE", _QuotedString(x.AssocLanguage)),
-		_NewAttr("URI", _QuotedString(x.URI)),
 		_NewAttr("DEFAULT", _Bool(x.Default)),
 		_NewAttr("FORCED", _Bool(x.Forced)),
 		_NewAttr("AUTOSELECT", _Bool(x.AutoSelect)),
 		_NewAttr("INSTREAM-ID", _QuotedString(x.InstreamId)),
 		_NewAttr("CHARACTERISTICS", _QuotedString(x.Characteristics)),
 		_NewAttr("CHANNELS", _QuotedString(x.Channels)),
+		_NewAttr("URI", _QuotedString(x.URI)),
 	)
 }
 
@@ -576,6 +565,327 @@ func checkXMedias(medias []XMedia) (err error) {
 		group.Names[m.Name] = struct{}{}
 	}
 
+	return
+}
+
+/// ----------------------------------------------------------------------- ///
+
+const (
+	HDCPLevelNone  HDCPLevel = "NONE"
+	HDCPLevelType0 HDCPLevel = "TYPE-0"
+)
+
+type HDCPLevel string
+
+func (l HDCPLevel) validate() (err error) {
+	switch l {
+	case HDCPLevelNone, HDCPLevelType0:
+	default:
+		err = errInvalidHDCPLevel
+	}
+	return
+}
+
+type XStreamInf struct {
+	URI string // Required
+
+	Bandwidth        uint64 // Required. Unit: bit/s
+	AverageBandwidth uint64 // Optional. Unit: bit/s
+
+	Codecs     []string
+	FrameRate  float64
+	HdcpLevel  HDCPLevel
+	Resolution XResolution
+
+	Audio          string
+	Video          string
+	Subtitles      string
+	ClosedCaptions string
+}
+
+func (x XStreamInf) IsZero() bool {
+	return x.URI == ""
+}
+
+func (x XStreamInf) encode(w io.Writer) (err error) {
+	if err = x.check(true); err != nil {
+		return
+	}
+
+	closedCaptions := _Value(_QuotedString(x.ClosedCaptions))
+	if x.ClosedCaptions == "" || x.ClosedCaptions == "NONE" {
+		closedCaptions = _UnquotedString(x.ClosedCaptions)
+	}
+
+	err = tryWriteAttrs(w, nil, true,
+		_NewAttr("BANDWIDTH", _DecimalInteger(x.Bandwidth)),
+		_NewAttr("AVERAGE-BANDWIDTH", _DecimalInteger(x.AverageBandwidth)),
+		_NewAttr("CODECS", _QuotedString(strings.Join(x.Codecs, ","))),
+		_NewAttr("FRAME-RATE", _DecimalFloat(x.FrameRate)),
+		_NewAttr("HDCP-LEVEL", newEnum(x.HdcpLevel)),
+		_NewAttr("RESOLUTION", x.Resolution),
+
+		_NewAttr("AUDIO", _QuotedString(x.Audio)),
+		_NewAttr("VIDEO", _QuotedString(x.Video)),
+		_NewAttr("SUBTITLES", _QuotedString(x.Subtitles)),
+		_NewAttr("CLOSED-CAPTIONS", closedCaptions),
+	)
+
+	err = tryWriteAny(w, err, "\n", _UnquotedString(x.URI))
+	return
+}
+
+func (x *XStreamInf) decode(s string) (err error) {
+	err = iterAttributes(s, -1, func(name, value string) (err error) {
+		switch name {
+		case "BANDWIDTH":
+			var v _DecimalInteger
+			if err = v.decode(value, 1); err == nil {
+				x.Bandwidth = v.get()
+			}
+
+		case "AVERAGE-BANDWIDTH":
+			var v _DecimalInteger
+			if err = v.decode(value, 0); err == nil {
+				x.AverageBandwidth = v.get()
+			}
+
+		case "CODECS":
+			var v _QuotedString
+			if err = v.decode(value); err == nil {
+				x.Codecs = strings.Split(v.get(), ",")
+			}
+
+		case "RESOLUTION":
+			var v XResolution
+			if err = v.decode(value); err == nil {
+				x.Resolution = v
+			}
+
+		case "FRAME-RATE":
+			var v _DecimalFloat
+			if err = v.decode(value); err == nil {
+				x.FrameRate = v.get()
+			}
+
+		case "HDCP-LEVEL":
+			var v _Enum[HDCPLevel]
+			if err = v.decode(value); err == nil {
+				x.HdcpLevel = v.get()
+			}
+
+		case "AUDIO":
+			var s _QuotedString
+			if err = s.decode(value); err == nil {
+				x.Audio = s.get()
+			}
+
+		case "VIDEO":
+			var s _QuotedString
+			if err = s.decode(value); err == nil {
+				x.Video = s.get()
+			}
+
+		case "SUBTITLES":
+			var s _QuotedString
+			if err = s.decode(value); err == nil {
+				x.Subtitles = s.get()
+			}
+
+		case "CLOSED-CAPTIONS":
+			if value == "NONE" {
+				x.ClosedCaptions = "NONE"
+			} else {
+				var s _QuotedString
+				if err = s.decode(value); err == nil {
+					x.ClosedCaptions = s.get()
+				}
+			}
+		}
+		return
+	})
+
+	if err == nil {
+		err = x.check(false)
+	}
+	return
+}
+
+func (x XStreamInf) check(uri bool) (err error) {
+	switch {
+	case uri && x.URI == "":
+		return errors.New("missing URI")
+	case x.Bandwidth == 0:
+		return errors.New("missing BANDWIDTH")
+	}
+	return
+}
+
+/// ----------------------------------------------------------------------- ///
+
+type XIFrameStreamInf struct {
+	URI string // Required
+
+	Bandwidth        uint64 // Required. Unit: bit/s
+	AverageBandwidth uint64 // Optional. Unit: bit/s
+
+	Codecs     []string
+	HdcpLevel  HDCPLevel
+	Resolution XResolution
+
+	Video string
+}
+
+func (x XIFrameStreamInf) IsZero() bool {
+	return x.URI == ""
+}
+
+func (x XIFrameStreamInf) encode(w io.Writer) (err error) {
+	if err = x.check(); err != nil {
+		return
+	}
+
+	return tryWriteAttrs(w, nil, true,
+		_NewAttr("BANDWIDTH", _DecimalInteger(x.Bandwidth)),
+		_NewAttr("AVERAGE-BANDWIDTH", _DecimalInteger(x.AverageBandwidth)),
+		_NewAttr("CODECS", _QuotedString(strings.Join(x.Codecs, ","))),
+		_NewAttr("HDCP-LEVEL", newEnum(x.HdcpLevel)),
+		_NewAttr("RESOLUTION", x.Resolution),
+		_NewAttr("VIDEO", _QuotedString(x.Video)),
+		_NewAttr("URI", _QuotedString(x.URI)),
+	)
+}
+
+func (x *XIFrameStreamInf) decode(s string) (err error) {
+	err = iterAttributes(s, -1, func(name, value string) (err error) {
+		switch name {
+		case "URI":
+			var s _QuotedString
+			if err = s.decode(value); err == nil {
+				x.URI = s.get()
+			}
+
+		case "BANDWIDTH":
+			var v _DecimalInteger
+			if err = v.decode(value, 1); err == nil {
+				x.Bandwidth = v.get()
+			}
+
+		case "AVERAGE-BANDWIDTH":
+			var v _DecimalInteger
+			if err = v.decode(value, 0); err == nil {
+				x.AverageBandwidth = v.get()
+			}
+
+		case "CODECS":
+			var v _QuotedString
+			if err = v.decode(value); err == nil {
+				x.Codecs = strings.Split(v.get(), ",")
+			}
+
+		case "RESOLUTION":
+			var v XResolution
+			if err = v.decode(value); err == nil {
+				x.Resolution = v
+			}
+
+		case "HDCP-LEVEL":
+			var v _Enum[HDCPLevel]
+			if err = v.decode(value); err == nil {
+				x.HdcpLevel = v.get()
+			}
+
+		case "VIDEO":
+			var s _QuotedString
+			if err = s.decode(value); err == nil {
+				x.Video = s.get()
+			}
+		}
+		return
+	})
+
+	if err == nil {
+		err = x.check()
+	}
+	return
+}
+
+func (x XIFrameStreamInf) check() (err error) {
+	switch {
+	case x.URI == "":
+		return errors.New("missing URI")
+	case x.Bandwidth == 0:
+		return errors.New("missing BANDWIDTH")
+	}
+	return
+}
+
+/// ----------------------------------------------------------------------- ///
+
+type XSessionData struct {
+	DataId   string
+	Value    string
+	URI      string
+	Language string
+}
+
+func (x XSessionData) IsZero() bool {
+	return x.DataId == ""
+}
+
+func (x XSessionData) encode(w io.Writer) (err error) {
+	if err = x.check(); err != nil {
+		return
+	}
+
+	return tryWriteAttrs(w, nil, true,
+		_NewAttr("DATA-ID", _QuotedString(x.DataId)),
+		_NewAttr("VALUE", _QuotedString(x.Value)),
+		_NewAttr("LANGUAGE", _QuotedString(x.Language)),
+		_NewAttr("URI", _QuotedString(x.URI)),
+	)
+}
+
+func (x *XSessionData) decode(s string) (err error) {
+	err = iterAttributes(s, -1, func(name, value string) (err error) {
+		switch name {
+		case "DATA-ID":
+			var v _QuotedString
+			if err = v.decode(s); err == nil {
+				x.DataId = v.get()
+			}
+
+		case "VALUE":
+			var v _QuotedString
+			if err = v.decode(s); err == nil {
+				x.Value = v.get()
+			}
+
+		case "LANGUAGE":
+			var v _QuotedString
+			if err = v.decode(s); err == nil {
+				x.Language = v.get()
+			}
+
+		case "URI":
+			var v _QuotedString
+			if err = v.decode(s); err == nil {
+				x.URI = v.get()
+			}
+		}
+		return
+	})
+
+	if err == nil {
+		err = x.check()
+	}
+	return
+}
+
+func (x XSessionData) check() (err error) {
+	if x.DataId == "" {
+		return errors.New("missing DATA-ID")
+	}
 	return
 }
 

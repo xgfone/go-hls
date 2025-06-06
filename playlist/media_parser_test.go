@@ -36,8 +36,8 @@ http://media.example.com/third.ts
 		t.Fatal(err)
 	}
 
-	if pl.Type() != "Media" {
-		t.Fatalf("expect playlist type '%s', but got '%s'", "Media", pl.Type())
+	if pl.Type() != PlayListTypeMedia {
+		t.Fatalf("expect playlist type '%s', but got '%s'", PlayListTypeMedia, pl.Type())
 	}
 
 	media, ok := pl.(MediaPlayList)

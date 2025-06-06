@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"sync/atomic"
+	"time"
 )
 
 const (
@@ -23,7 +24,22 @@ func (t XMediaPlayListType) validate() error {
 	}
 }
 
-var _ PlayList = MediaPlayList{}
+type MediaSegment struct {
+	URI   string // Required.
+	Title string
+
+	Duration  float64 // Required. Unit: Second
+	ByteRange XByteRange
+	Key       XKey
+	Map       XMap
+
+	ProgramDateTime time.Time
+
+	MediaSequence         uint64 // Cannot be encoded
+	DiscontinuitySequence uint64 // Cannot be encoded
+
+	Discontinuity bool
+}
 
 type MediaPlayList struct {
 	Version uint64

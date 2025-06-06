@@ -121,7 +121,13 @@ func (v _DecimalFloat) encode(w io.Writer) error {
 	if !v.valid() {
 		return errInvalidDecimalFloat
 	}
-	_, err := io.WriteString(w, strconv.FormatFloat(float64(v), 'f', -1, 64))
+
+	s := strconv.FormatFloat(float64(v), 'f', -1, 64)
+	if index := strings.IndexByte(s, '.'); index >= 0 && len(s[index+1:]) > 3 {
+		s = s[:index+4] // Limit to 3 decimal places
+	}
+
+	_, err := io.WriteString(w, s)
 	return err
 }
 
