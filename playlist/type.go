@@ -46,6 +46,26 @@ func (v XByteRange) minVersion() (version uint64) {
 	return
 }
 
+// Align16 returns the byte range aligned at 16 bytes, which is used
+// to restrict the range of the data encrypted by AES-128.
+func (v XByteRange) Align16() XByteRange {
+	v.Length = (v.Length + 0xF) &^ 0xF // Ceil, 向上取整
+	v.Offset = v.Offset &^ 0xF         // Floor, 向下取整
+	return v
+}
+
+// AdjustForIFrame adjusts the offset and length for I-Frame.
+//
+// If iv is true, the range contains the beginning 16-bytes IV.
+func (v XByteRange) AdjustForIFrame() (new XByteRange, iv bool) {
+	new = v
+	new.Length += 16
+	if iv = new.Offset >= 16; iv {
+		new.Offset -= 16
+	}
+	return
+}
+
 func (v XByteRange) IsZero() bool { return v.Length == 0 }
 
 func (v XByteRange) valid() bool { return v.Length > 0 }
