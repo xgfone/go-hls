@@ -85,32 +85,31 @@ func (pl MediaPlayList) Output(w io.Writer) error {
 	return pl.encode(w)
 }
 
-func (pl MediaPlayList) minVersion() uint64 {
+func (pl MediaPlayList) minVersion() (minVersion uint64) {
+	setVersion := func(version uint64) {
+		minVersion = max(minVersion, version)
+	}
+
 	for _, seg := range pl.Segments {
 		if !isIntegerFloat64(seg.Duration) {
-			pl.setVersion(3)
+			setVersion(3)
 		}
 
-		pl.setVersion(seg.ByteRange.minVersion())
-		pl.setVersion(seg.Key.minVersion())
+		setVersion(seg.ByteRange.minVersion())
+		setVersion(seg.Key.minVersion())
 		if seg.Map.valid() {
 			if pl.IFrameOnly {
-				pl.setVersion(5)
+				setVersion(5)
 			} else {
-				pl.setVersion(6)
+				setVersion(6)
 			}
 		}
 		if pl.IFrameOnly {
-			pl.setVersion(4)
+			setVersion(4)
 		}
 	}
-	return pl.Version
-}
 
-func (pl *MediaPlayList) setVersion(version uint64) {
-	if pl.Version < version {
-		pl.Version = version
-	}
+	return
 }
 
 func (pl MediaPlayList) validate(minVersion uint64) (err error) {
