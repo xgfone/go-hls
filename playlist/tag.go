@@ -1,5 +1,6 @@
 package playlist
 
+// Define PlayList Tags
 const (
 	// Basic Tags
 	EXTM3U        Tag = "#EXTM3U"        // RFC 8216, 4.3.1.1
@@ -34,4 +35,5 @@ const (
 	EXT_X_START                Tag = "#EXT-X-START"                // RFC 8216, 4.3.5.2
 )
 
+// Tag is used to define a playlist tag.
 type Tag string

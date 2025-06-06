@@ -128,7 +128,10 @@ func (m XKeyMethod) validate() error {
 	}
 }
 
-// FormatIV formats the 16-octet bytes to a hexadecimal-sequence string.
+// FormatIV formats the 16-octet bytes to a hexadecimal-sequence string
+// with the prefix "0x".
+//
+// If strict is true, the lengthg of iv must be equal to 16. Or, panic.
 func FormatIV(iv []byte, strict bool) string {
 	if len(iv) != 16 && strict {
 		panic(errors.New("IV is not 16-octet bytes"))

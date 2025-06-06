@@ -8,11 +8,13 @@ import (
 	"time"
 )
 
+// Media PlayList Types.
 const (
 	MediaPlayListTypeVOD   XMediaPlayListType = "VOD"
 	MediaPlayListTypeEvent XMediaPlayListType = "EVENT"
 )
 
+// XMediaPlayListType is used to define the type of the media playlist.
 type XMediaPlayListType string
 
 func (t XMediaPlayListType) validate() error {
@@ -24,6 +26,11 @@ func (t XMediaPlayListType) validate() error {
 	}
 }
 
+// MediaSegment represents a media segment in a media playlist.
+//
+// See [[RFC 8216, 4.3.2]].
+//
+// [RFC 8216, 4.3.2]: https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.2
 type MediaSegment struct {
 	URI   string // Required.
 	Title string
@@ -41,6 +48,7 @@ type MediaSegment struct {
 	Discontinuity bool
 }
 
+// MediaPlayList represents a media playlist, which implemented the PlayList interface.
 type MediaPlayList struct {
 	Version uint64
 
@@ -56,10 +64,12 @@ type MediaPlayList struct {
 	EndList               bool
 }
 
+// Type returns the fixed "Media".
 func (pl MediaPlayList) Type() string {
 	return PlayListTypeMedia
 }
 
+// MinVersion returns the mininal version.
 func (pl MediaPlayList) MinVersion() uint64 {
 	if pl.Version > 0 {
 		return pl.Version
@@ -67,6 +77,7 @@ func (pl MediaPlayList) MinVersion() uint64 {
 	return pl.minVersion()
 }
 
+// TotalDuration calculates and returns the total duration of media segments.
 func (pl MediaPlayList) TotalDuration() float64 {
 	var total float64
 	for _, seg := range pl.Segments {
@@ -75,6 +86,7 @@ func (pl MediaPlayList) TotalDuration() float64 {
 	return total
 }
 
+// Output encodes the media playlist as the M3U8 format to w.
 func (pl MediaPlayList) Output(w io.Writer) error {
 	if err := pl.validate(pl.Version); err != nil {
 		return err

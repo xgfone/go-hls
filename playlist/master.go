@@ -5,6 +5,7 @@ import (
 	"io"
 )
 
+// MasterSegment represents a master segment in a master playlist.
 type MasterSegment struct {
 	Stream XStreamInf
 
@@ -14,6 +15,7 @@ type MasterSegment struct {
 	SessionKeys   []XKey
 }
 
+// MasterPlayList represents a master playlist, which implemented the PlayList interface.
 type MasterPlayList struct {
 	Version uint64
 	Start   XStart
@@ -23,10 +25,12 @@ type MasterPlayList struct {
 	IndependentSegments bool
 }
 
+// Type returns the fixed "Master".
 func (pl MasterPlayList) Type() string {
 	return PlayListTypeMaster
 }
 
+// MinVersion returns the mininal version.
 func (pl MasterPlayList) MinVersion() uint64 {
 	if pl.Version > 0 {
 		return pl.Version
@@ -34,6 +38,7 @@ func (pl MasterPlayList) MinVersion() uint64 {
 	return 1
 }
 
+// Output encodes the master playlist as the M3U8 format to w.
 func (pl MasterPlayList) Output(w io.Writer) error {
 	if err := pl.validate(); err != nil {
 		return err
