@@ -126,21 +126,10 @@ func (v *XResolution) decode(s string) (err error) {
 /// ----------------------------------------------------------------------- ///
 
 const (
-	XKeyMethodNone      XKeyMethod = "NONE"
-	XKeyMethodAES128    XKeyMethod = "AES-128"
-	XKeyMethodSampleAES XKeyMethod = "SAMPLE-AES"
+	XKeyMethodNone      = "NONE"
+	XKeyMethodAES128    = "AES-128"
+	XKeyMethodSampleAES = "SAMPLE-AES"
 )
-
-type XKeyMethod string
-
-func (m XKeyMethod) validate() error {
-	switch m {
-	case XKeyMethodNone, XKeyMethodAES128, XKeyMethodSampleAES:
-		return nil
-	default:
-		return errInvalidKeyMethod
-	}
-}
 
 // FormatIV formats the 16-octet bytes to a hexadecimal-sequence string
 // with the prefix "0x".
@@ -159,7 +148,7 @@ func FormatIV(iv []byte, strict bool) string {
 }
 
 type XKey struct {
-	Method  XKeyMethod // Required
+	Method  string // Required
 	URI     string
 	IV      string // a hexadecimal-sequence string with the prefix "0x" or "0X".
 	Format  string
@@ -222,7 +211,7 @@ func (x *XKey) decode(s string) (err error) {
 
 		switch key {
 		case "METHOD":
-			var method _Enum[XKeyMethod]
+			var method _Enum
 			if err = method.decode(value); err != nil {
 				err = fmt.Errorf("invalid METHOD: %w", err)
 			} else {
@@ -272,7 +261,7 @@ func (x *XKey) decode(s string) (err error) {
 }
 
 func (x *XKey) _check() (err error) {
-	switch XKeyMethod(x.Method) {
+	switch x.Method {
 	case "":
 		return errors.New("missing METHOD")
 
@@ -351,27 +340,16 @@ func (x *XMap) check() (err error) {
 /// ----------------------------------------------------------------------- ///
 
 const (
-	XMediaTypeAudio          XMediaType = "AUDIO"
-	XMediaTypeVideo          XMediaType = "VIDEO"
-	XMediaTypeSubtitles      XMediaType = "SUBTITLES"
-	XMediaTypeClosedCaptions XMediaType = "CLOSED-CAPTIONS"
+	XMediaTypeAudio          = "AUDIO"
+	XMediaTypeVideo          = "VIDEO"
+	XMediaTypeSubtitles      = "SUBTITLES"
+	XMediaTypeClosedCaptions = "CLOSED-CAPTIONS"
 )
 
-type XMediaType string
-
-func (t XMediaType) validate() error {
-	switch t {
-	case XMediaTypeAudio, XMediaTypeVideo, XMediaTypeSubtitles, XMediaTypeClosedCaptions:
-		return nil
-	default:
-		return fmt.Errorf("invalid media type: %s", t)
-	}
-}
-
 type XMedia struct {
-	Type            XMediaType // Required
-	Name            string     // Required
-	GroupId         string     // Required
+	Type            string // Required
+	Name            string // Required
+	GroupId         string // Required
 	Language        string
 	AssocLanguage   string
 	InstreamId      string
@@ -419,7 +397,7 @@ func (x *XMedia) decode(s string) (err error) {
 
 		switch name {
 		case "TYPE":
-			var _type _Enum[XMediaType]
+			var _type _Enum
 			if err = _type.decode(value); err != nil {
 				err = fmt.Errorf("invalid TYPE: %w", err)
 			} else {
@@ -601,20 +579,9 @@ func checkXMedias(medias []XMedia) (err error) {
 /// ----------------------------------------------------------------------- ///
 
 const (
-	HDCPLevelNone  HDCPLevel = "NONE"
-	HDCPLevelType0 HDCPLevel = "TYPE-0"
+	HDCPLevelNone  = "NONE"
+	HDCPLevelType0 = "TYPE-0"
 )
-
-type HDCPLevel string
-
-func (l HDCPLevel) validate() (err error) {
-	switch l {
-	case HDCPLevelNone, HDCPLevelType0:
-	default:
-		err = errInvalidHDCPLevel
-	}
-	return
-}
 
 type XStreamInf struct {
 	URI string // Required
@@ -623,8 +590,8 @@ type XStreamInf struct {
 	AverageBandwidth uint64 // Optional. Unit: bit/s
 
 	Codecs     []string
+	HdcpLevel  string
 	FrameRate  float64
-	HdcpLevel  HDCPLevel
 	Resolution XResolution
 
 	Audio          string
@@ -699,7 +666,7 @@ func (x *XStreamInf) decode(s string) (err error) {
 			}
 
 		case "HDCP-LEVEL":
-			var v _Enum[HDCPLevel]
+			var v _Enum
 			if err = v.decode(value); err == nil {
 				x.HdcpLevel = v.get()
 			}
@@ -760,7 +727,7 @@ type XIFrameStreamInf struct {
 	AverageBandwidth uint64 // Optional. Unit: bit/s
 
 	Codecs     []string
-	HdcpLevel  HDCPLevel
+	HdcpLevel  string
 	Resolution XResolution
 
 	Video string
@@ -820,7 +787,7 @@ func (x *XIFrameStreamInf) decode(s string) (err error) {
 			}
 
 		case "HDCP-LEVEL":
-			var v _Enum[HDCPLevel]
+			var v _Enum
 			if err = v.decode(value); err == nil {
 				x.HdcpLevel = v.get()
 			}

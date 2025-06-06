@@ -31,6 +31,7 @@ var (
 	errInvalidDecimalInteger = errors.New("invalid decimal integer")
 	errInvalidDecimalFloat   = errors.New("invalid decimal float")
 	errInvalidBool           = errors.New("invalid bool")
+	errInvalidEnum           = errors.New("invalid enum")
 	errInvalidTime           = errors.New("invalid time")
 
 	errInvalidAttribute      = errors.New("invalid attribute")
@@ -275,35 +276,30 @@ func (v *_Time) decode(s string) (err error) {
 	return
 }
 
-type _EnumValuer interface {
-	~string
-	validate() error
+type _Enum string
+
+func newEnum(value string) _Enum {
+	return _Enum(value)
 }
 
-type _Enum[T _EnumValuer] struct {
-	value T
+func (v _Enum) IsZero() bool { return v == "" }
+
+func (v _Enum) get() string { return string(v) }
+
+func (v _Enum) encode(w io.Writer) error {
+	return _UnquotedString(v).encode(w)
 }
 
-func newEnum[T _EnumValuer](value T) _Enum[T] {
-	return _Enum[T]{value: value}
-}
-
-func (v _Enum[T]) IsZero() bool { return v.value == "" }
-
-func (v _Enum[T]) get() T { return v.value }
-
-func (v _Enum[T]) encode(w io.Writer) error {
-	if err := v.value.validate(); err != nil {
-		return err
+func (v *_Enum) decode(s string) (err error) {
+	var _s _UnquotedString
+	if err = _s.decode(s); err == nil {
+		if _s == "" {
+			err = errInvalidEnum
+		} else {
+			*v = _Enum(_s)
+		}
 	}
-
-	_, err := io.WriteString(w, string(v.value))
-	return err
-}
-
-func (v *_Enum[T]) decode(s string) error {
-	v.value = T(s)
-	return v.value.validate()
+	return
 }
 
 type _Value interface {

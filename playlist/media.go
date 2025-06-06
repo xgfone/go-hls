@@ -15,7 +15,6 @@
 package playlist
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"sync/atomic"
@@ -23,21 +22,9 @@ import (
 
 // Media PlayList Types.
 const (
-	MediaPlayListTypeVOD   XMediaPlayListType = "VOD"
-	MediaPlayListTypeEvent XMediaPlayListType = "EVENT"
+	MediaPlayListTypeVOD   = "VOD"
+	MediaPlayListTypeEvent = "EVENT"
 )
-
-// XMediaPlayListType is used to define the type of the media playlist.
-type XMediaPlayListType string
-
-func (t XMediaPlayListType) validate() error {
-	switch t {
-	case MediaPlayListTypeVOD, MediaPlayListTypeEvent:
-		return nil
-	default:
-		return errors.New("invalid media playlist type")
-	}
-}
 
 // MediaPlayList represents a media playlist, which implemented the PlayList interface.
 type MediaPlayList struct {
@@ -49,7 +36,7 @@ type MediaPlayList struct {
 	TargetDuration        uint64 // Unit: second
 	MediaSequence         uint64
 	DiscontinuitySequence uint64
-	PlayListType          XMediaPlayListType
+	PlayListType          string
 	IndependentSegments   bool
 	IFrameOnly            bool
 	EndList               bool

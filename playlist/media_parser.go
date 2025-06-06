@@ -239,7 +239,7 @@ func (p *_MediaPlayList) parseTag(tag Tag, attr string) (err error) {
 		if p.media.PlayListType != "" && parser.strict {
 			err = errDuplicatedTag
 		} else {
-			var _type _Enum[XMediaPlayListType]
+			var _type _Enum
 			if err = _type.decode(attr); err == nil {
 				p.media.PlayListType = _type.get()
 			}
