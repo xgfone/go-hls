@@ -1,12 +1,10 @@
 package playlist
 
 import (
-	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
 	"sync/atomic"
-	"time"
 )
 
 // Media PlayList Types.
@@ -25,41 +23,6 @@ func (t XMediaPlayListType) validate() error {
 	default:
 		return errors.New("invalid media playlist type")
 	}
-}
-
-// MediaSegment represents a media segment in a media playlist.
-//
-// See [[RFC 8216, 4.3.2]].
-//
-// [RFC 8216, 4.3.2]: https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.2
-type MediaSegment struct {
-	URI   string // Required.
-	Title string
-
-	Duration  float64 // Required. Unit: Second
-	ByteRange XByteRange
-	Key       XKey
-	Map       XMap
-
-	ProgramDateTime time.Time
-
-	MediaSequence         uint64 // Cannot be encoded
-	DiscontinuitySequence uint64 // Cannot be encoded
-
-	Discontinuity bool
-}
-
-// IV try to decode the iv from a hexadecimal-sequence string to a 16-octet bytes.
-func (s MediaSegment) IV() (data []byte, err error) {
-	if s.Key.IV != "" {
-		var seq _HexSequence
-		err = seq.decode(s.Key.IV)
-		data = []byte(seq)
-	} else {
-		data = make([]byte, 16)
-		binary.BigEndian.PutUint64(data[8:], s.MediaSequence)
-	}
-	return
 }
 
 // MediaPlayList represents a media playlist, which implemented the PlayList interface.
