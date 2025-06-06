@@ -17,7 +17,6 @@ package playlist
 import (
 	"fmt"
 	"io"
-	"sync/atomic"
 )
 
 // Media PlayList Types.
@@ -120,9 +119,11 @@ func (pl MediaPlayList) validate(minVersion uint64) (err error) {
 
 func (pl *MediaPlayList) update() {
 	lastdseq := pl.DiscontinuitySequence
+	lastmseq := pl.MediaSequence
 	for i := range pl.Segments {
 		s := &pl.Segments[i]
-		s.MediaSequence = pl.calcMediaSequence()
+		s.MediaSequence = lastmseq
+		lastmseq++
 
 		if s.Discontinuity {
 			lastdseq++
@@ -134,8 +135,4 @@ func (pl *MediaPlayList) update() {
 	if len(pl.Segments) > 0 {
 		pl.MediaSequence = pl.Segments[0].MediaSequence
 	}
-}
-
-func (pl *MediaPlayList) calcMediaSequence() uint64 {
-	return atomic.AddUint64(&pl.MediaSequence, 1) - 1
 }
