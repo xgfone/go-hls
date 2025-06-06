@@ -12,3 +12,8 @@ type ParseError struct {
 func (e ParseError) Error() string {
 	return fmt.Sprintf("line %d: %v", e.Line, e.Err)
 }
+
+// Unwrap is used to unwrap the inner error.
+func (e ParseError) Unwrap() error {
+	return e.Err
+}
