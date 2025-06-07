@@ -82,7 +82,9 @@ func (pl MediaPlayList) minVersion() (minVersion uint64) {
 		}
 
 		setVersion(seg.ByteRange.minVersion())
-		setVersion(seg.Key.minVersion())
+		for i := range seg.Keys {
+			setVersion(seg.Keys[i].minVersion())
+		}
 		if seg.Map.valid() {
 			if pl.IFrameOnly {
 				setVersion(5)

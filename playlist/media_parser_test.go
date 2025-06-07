@@ -15,6 +15,7 @@
 package playlist
 
 import (
+	"reflect"
 	"strconv"
 	"strings"
 	"testing"
@@ -69,14 +70,8 @@ http://media.example.com/third.ts
 	}
 
 	var (
-		key1 = XKey{
-			Method: XKeyMethodAES128,
-			URI:    "https://priv.example.com/key.php?r=52",
-		}
-		key2 = XKey{
-			Method: XKeyMethodAES128,
-			URI:    "https://priv.example.com/key.php?r=53",
-		}
+		keys1 = []XKey{{Method: XKeyMethodAES128, URI: "https://priv.example.com/key.php?r=52"}}
+		keys2 = []XKey{{Method: XKeyMethodAES128, URI: "https://priv.example.com/key.php?r=53"}}
 	)
 
 	if len(media.Segments) != 3 {
@@ -98,13 +93,13 @@ http://media.example.com/third.ts
 	for i, seg := range media.Segments {
 		switch {
 		case i == 0 && seg.MediaSequence == uint64(2680+i) && seg.DiscontinuitySequence == 1 &&
-			seg.Key == key1 && expectDuration(seg.Duration, "9.009") &&
+			reflect.DeepEqual(seg.Keys, keys1) && expectDuration(seg.Duration, "9.009") &&
 			seg.URI == "http://media.example.com/first.ts":
 		case i == 1 && seg.MediaSequence == uint64(2680+i) && seg.DiscontinuitySequence == 1 &&
-			seg.Key == key1 && expectDuration(seg.Duration, "9.009") &&
+			reflect.DeepEqual(seg.Keys, keys1) && expectDuration(seg.Duration, "9.009") &&
 			seg.URI == "http://media.example.com/second.ts":
 		case i == 2 && seg.MediaSequence == uint64(2680+i) && seg.DiscontinuitySequence == 2 &&
-			seg.Key == key2 && expectDuration(seg.Duration, "3.003") &&
+			reflect.DeepEqual(seg.Keys, keys2) && expectDuration(seg.Duration, "3.003") &&
 			seg.URI == "http://media.example.com/third.ts":
 		default:
 			t.Errorf("unexpect media segment: index=%d, segment=%+v", i, seg)

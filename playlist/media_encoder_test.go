@@ -82,15 +82,8 @@ http://media.example.com/fileSequence53-A.ts
 `
 
 	var (
-		key1 = XKey{
-			Method: XKeyMethodAES128,
-			URI:    "https://priv.example.com/key.php?r=52",
-		}
-
-		key2 = XKey{
-			Method: XKeyMethodAES128,
-			URI:    "https://priv.example.com/key.php?r=53",
-		}
+		keys1 = []XKey{{Method: XKeyMethodAES128, URI: "https://priv.example.com/key.php?r=52"}}
+		keys2 = []XKey{{Method: XKeyMethodAES128, URI: "https://priv.example.com/key.php?r=53"}}
 	)
 
 	pl := MediaPlayList{
@@ -101,22 +94,22 @@ http://media.example.com/fileSequence53-A.ts
 
 		Segments: []MediaSegment{
 			{
-				Key:      key1,
+				Keys:     keys1,
 				URI:      "http://media.example.com/fileSequence52-A.ts",
 				Duration: 2.833,
 			},
 			{
-				Key:      key1,
+				Keys:     keys1,
 				URI:      "http://media.example.com/fileSequence52-B.ts",
 				Duration: 15,
 			},
 			{
-				Key:      key1,
+				Keys:     keys1,
 				URI:      "http://media.example.com/fileSequence52-C.ts",
 				Duration: 13.333,
 			},
 			{
-				Key:      key2,
+				Keys:     keys2,
 				URI:      "http://media.example.com/fileSequence53-A.ts",
 				Duration: 15,
 			},

@@ -22,15 +22,11 @@ var (
 
 type _MediaPlayList struct {
 	parser *_Parser
+	media  MediaPlayList
 
 	// Media Segment
 	segcache MediaSegment
 	curseg   *MediaSegment
-
-	media MediaPlayList
-
-	xkey XKey
-	xmap XMap
 }
 
 func (p *_MediaPlayList) PlayList() MediaPlayList {
@@ -47,9 +43,10 @@ func (p *_MediaPlayList) end() bool {
 
 func (p *_MediaPlayList) setURI(uri string) {
 	if p.curseg != nil {
+		if len(p.curseg.Keys) == 0 && len(p.media.Segments) > 0 {
+			p.curseg.Keys = p.media.Segments[len(p.media.Segments)-1].Keys
+		}
 		p.curseg.URI = uri
-		p.curseg.Key = p.xkey
-		p.curseg.Map = p.xmap
 		p.media.Segments = append(p.media.Segments, *p.curseg)
 		p.curseg = nil
 	}
@@ -159,14 +156,17 @@ func (p *_MediaPlayList) parseTag(tag Tag, attr string) (err error) {
 		// Two or more EXT-X-KEY tags with different KEYFORMAT attributes MAY apply
 		// to the same Media Segment if they ultimately produce the same decryption key.
 		p.initCurrentMediaSegment()
-		err = p.xkey.decode(attr)
+		var key XKey
+		if err = key.decode(attr); err == nil {
+			p.curseg.Keys = append(p.curseg.Keys, key)
+		}
 
 	case EXT_X_MAP:
 		// RFC 8216, 4.3.2.5:
 		// It applies to every Media Segment that appears after it in the Playlist
 		// until the next EXT-X-MAP tag or until the end of the Playlist.
 		p.initCurrentMediaSegment()
-		err = p.xmap.decode(attr)
+		err = p.curseg.Map.decode(attr)
 
 	case EXT_X_PROGRAM_DATE_TIME:
 		// RFC 8216, 4.3.2.6:

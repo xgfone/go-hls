@@ -14,7 +14,10 @@
 
 package playlist
 
-import "io"
+import (
+	"io"
+	"slices"
+)
 
 func (pl MediaPlayList) encode(w io.Writer) (err error) {
 	// Basic Tags
@@ -35,7 +38,9 @@ func (pl MediaPlayList) encode(w io.Writer) (err error) {
 	err = tryWriteTag(w, err, EXT_X_DISCONTINUITY_SEQUENCE, _DecimalInteger(pl.DiscontinuitySequence))
 
 	// Media Segment Tags
-	var xkey XKey
+	lastkeys := make([]XKey, 0, 4)
+	curkeys := make([]XKey, 0, 4)
+
 	var xmap XMap
 	for _, seg := range pl.Segments {
 		if err != nil {
@@ -49,15 +54,19 @@ func (pl MediaPlayList) encode(w io.Writer) (err error) {
 			panic("missing Duration in MediaSegment")
 		}
 
+		curkeys = append(curkeys[:0], seg.Keys...)
+		sortKeys(curkeys)
 		switch {
-		case xkey.IsZero(), xkey != seg.Key:
-			xkey = seg.Key
+		case len(curkeys) == 0:
+		case len(lastkeys) == 0:
+			lastkeys = append(lastkeys[:0], curkeys...)
 
-		case seg.Key.IsZero():
-			seg.Key = xkey
-
-		case seg.Key == xkey:
-			seg.Key = XKey{}
+		default:
+			if !equalKeys(lastkeys, curkeys) {
+				lastkeys = append(lastkeys[:0], curkeys...)
+			} else {
+				seg.Keys = nil
+			}
 		}
 
 		switch {
@@ -71,7 +80,9 @@ func (pl MediaPlayList) encode(w io.Writer) (err error) {
 			seg.Map = XMap{}
 		}
 
-		err = tryWriteTag(w, err, EXT_X_KEY, seg.Key)
+		for _, key := range seg.Keys {
+			err = tryWriteTag(w, err, EXT_X_KEY, key)
+		}
 		err = tryWriteTag(w, err, EXT_X_MAP, seg.Map)
 
 		err = tryWriteTag(w, err, EXT_X_DISCONTINUITY, _Bool(seg.Discontinuity))
@@ -84,4 +95,37 @@ func (pl MediaPlayList) encode(w io.Writer) (err error) {
 
 	err = tryWriteTag(w, err, EXT_X_ENDLIST, _Bool(pl.EndList))
 	return
+}
+
+func equalKeys(keys1, keys2 []XKey) bool {
+	if len(keys1) != len(keys2) {
+		return false
+	}
+
+	for i := range keys1 {
+		if keys1[i] != keys2[i] {
+			return false
+		}
+	}
+
+	return true
+}
+
+func sortKeys(keys []XKey) {
+	if len(keys) < 2 {
+		return
+	}
+
+	slices.SortStableFunc(keys, func(a, b XKey) int {
+		switch {
+		case a == b:
+			return 0
+
+		case a.Format < b.Format || a.URI < b.URI:
+			return -1
+
+		default:
+			return 1
+		}
+	})
 }

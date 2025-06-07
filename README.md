@@ -43,3 +43,7 @@ $ go get -u github.com/xgfone/go-hls
 - **Media or Master Playlist Tags** [RFC 8216, 4.3.5](https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.5)
   - [x] `#EXT-X-INDEPENDENT-SEGMENTS` [RFC 8216, 4.3.5.1](https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.5.1)
   - [x] `#EXT-X-START` [RFC 8216, 4.3.5.2](https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.5.2)
+
+### Difference with RFC8216 for `#EXT-X-KEY`
+
+When a key in one `KEYFORMAT` is updated or overwritten, all keys in other `KEYFORMAT`s must be updated simultaneously.

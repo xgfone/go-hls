@@ -32,7 +32,7 @@ type MediaSegment struct {
 
 	Duration  float64 // Required. Unit: Second
 	ByteRange XByteRange
-	Key       XKey
+	Keys      []XKey
 	Map       XMap
 
 	ProgramDateTime time.Time
@@ -45,9 +45,9 @@ type MediaSegment struct {
 
 // IV try to decode the iv from a hexadecimal-sequence string to a 16-octet bytes.
 func (s MediaSegment) IV() (data []byte, err error) {
-	if s.Key.IV != "" {
+	if len(s.Keys) > 0 && s.Keys[0].IV != "" {
 		var seq _HexSequence
-		err = seq.decode(s.Key.IV)
+		err = seq.decode(s.Keys[0].IV)
 		data = []byte(seq)
 	} else {
 		data = make([]byte, 16)
