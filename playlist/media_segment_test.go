@@ -75,10 +75,10 @@ func TestMediaSegmentProgramDateTime(t *testing.T) {
 		case j == 1 && dt == "2025-06-07 00:01:07":
 		case j == 2 && dt == "2025-06-07 00:01:08":
 		case j == 3 && dt == "2025-06-07 00:01:10":
-		case j == 4 && dt == "2025-06-07 00:01:14":
-		case j == 5 && dt == "2025-06-07 00:01:19":
+		case j == 4 && dt == "2025-06-07 00:01:13":
+		case j == 5 && dt == "2025-06-07 00:01:17":
 		case j == 6 && dt == "2025-06-07 00:01:30":
-		case j == 7 && dt == "2025-06-07 00:01:37":
+		case j == 7 && dt == "2025-06-07 00:01:36":
 		default:
 			t.Errorf("%d: unexpect time '%s'", i, dt)
 		}

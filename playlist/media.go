@@ -151,23 +151,23 @@ func (pl *MediaPlayList) update() {
 func (pl *MediaPlayList) _updateProgramDateTime(index int) {
 	// 1. Backward
 	{
-		lasttime := pl.Segments[index].ProgramDateTime
+		lastseg := &pl.Segments[index]
 		for i := index - 1; i >= 0; i-- {
 			seg := &pl.Segments[i]
-			seg.ProgramDateTime = lasttime.Add(-float64ToDuration(seg.Duration))
-			lasttime = seg.ProgramDateTime
+			seg.ProgramDateTime = lastseg.nextProgramDateTime(-seg.Duration)
+			lastseg = seg
 		}
 	}
 
 	// 2. Forward
 	{
-		lasttime := pl.Segments[index].ProgramDateTime
+		lastseg := &pl.Segments[index]
 		for i, _len := index+1, len(pl.Segments); i < _len; i++ {
 			seg := &pl.Segments[i]
 			if seg.ProgramDateTime.IsZero() {
-				seg.ProgramDateTime = lasttime.Add(float64ToDuration(seg.Duration))
+				seg.ProgramDateTime = lastseg.nextProgramDateTime(lastseg.Duration)
 			}
-			lasttime = seg.ProgramDateTime
+			lastseg = seg
 		}
 	}
 }

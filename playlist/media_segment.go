@@ -43,6 +43,10 @@ type MediaSegment struct {
 	Discontinuity bool
 }
 
+func (s *MediaSegment) nextProgramDateTime(duration float64) time.Time {
+	return s.ProgramDateTime.Add(float64ToDuration(duration))
+}
+
 // IV try to decode the iv from a hexadecimal-sequence string to a 16-octet bytes.
 func (s MediaSegment) IV() (data []byte, err error) {
 	if len(s.Keys) > 0 && s.Keys[0].IV != "" {
