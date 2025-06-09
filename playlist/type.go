@@ -107,9 +107,9 @@ type XResolution struct {
 	Height uint64 `json:",omitempty,omitzero"` // Optional. Unit: byte
 }
 
-func (v XResolution) IsZero() bool {
-	return v.Width == 0 || v.Height == 0
-}
+func (v XResolution) String() string { return fmt.Sprintf("%dx%d", v.Width, v.Height) }
+
+func (v XResolution) IsZero() bool { return v.Width == 0 || v.Height == 0 }
 
 func (v XResolution) valid() bool { return v.Width > 0 && v.Height > 0 }
 

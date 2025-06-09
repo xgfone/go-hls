@@ -36,6 +36,7 @@ type _URISetter interface {
 }
 
 type _Parser struct {
+	line    string
 	lineno  int
 	version uint64
 
@@ -50,16 +51,16 @@ type _Parser struct {
 	strict bool
 }
 
-func (p *_Parser) readline(r *textproto.Reader) (line string, err error) {
+func (p *_Parser) readline(r *textproto.Reader) (err error) {
 	for {
 		p.lineno++
-		if line, err = r.ReadLine(); err != nil {
+		if p.line, err = r.ReadLine(); err != nil {
 			return
 		}
 
-		switch line = strings.TrimSpace(line); {
-		case line == "": // Blank Line
-		case line[0] == '#' && !strings.HasPrefix(line, "#EXT"): // Comment Line
+		switch p.line = strings.TrimSpace(p.line); {
+		case p.line == "": // Blank Line
+		case p.line[0] == '#' && !strings.HasPrefix(p.line, "#EXT"): // Comment Line
 		default:
 			return
 		}
@@ -68,7 +69,7 @@ func (p *_Parser) readline(r *textproto.Reader) (line string, err error) {
 
 func (p *_Parser) Parse(r io.Reader) (pl PlayList, err error) {
 	if err = p.parse(r); err != nil {
-		err = ParseError{Line: p.lineno, Err: err}
+		err = ParseError{Line: p.lineno, Data: p.line, Err: err}
 		return
 	}
 
@@ -101,25 +102,24 @@ func (p *_Parser) parse(r io.Reader) (err error) {
 	}
 
 	reader := textproto.NewReader(br)
-	line, err := p.readline(reader)
-	if err != nil {
+	if err = p.readline(reader); err != nil {
 		return
-	} else if line != string(EXTM3U) {
+	} else if p.line != string(EXTM3U) {
 		return errors.New("not start with " + string(EXTM3U))
 	}
 
 	for {
-		if line, err = p.readline(reader); err != nil {
+		if err = p.readline(reader); err != nil {
 			if err == io.EOF {
 				err = nil
 			}
 			return
 		}
 
-		if line[0] == '#' {
-			err = p.parseLineForTag(line)
+		if p.line[0] == '#' {
+			err = p.parseLineForTag(p.line)
 		} else {
-			err = p.parseLineForURI(line)
+			err = p.parseLineForURI(p.line)
 		}
 
 		if err != nil || p.mediapl.end() {

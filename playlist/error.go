@@ -18,13 +18,14 @@ import "fmt"
 
 // ParseError represents an error when parsing a master/media playlist.
 type ParseError struct {
-	Line int
+	Line int    // Line Number
+	Data string // Line Data
 	Err  error
 }
 
 // Error implements the error interface.
 func (e ParseError) Error() string {
-	return fmt.Sprintf("line %d: %v", e.Line, e.Err)
+	return fmt.Sprintf("line %d: %s: %v", e.Line, e.Data, e.Err)
 }
 
 // Unwrap is used to unwrap the inner error.
