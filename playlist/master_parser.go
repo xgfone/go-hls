@@ -14,7 +14,23 @@
 
 package playlist
 
-import "errors"
+import (
+	"errors"
+	"io"
+)
+
+// Parse reads the data from r and parses it as the master playlist.
+func (pl *MasterPlayList) Parse(r io.Reader) (err error) {
+	var p _Parser
+	p.initMaster()
+
+	_pl, err := p.Parse(r)
+	if err == nil {
+		*pl = _pl.(MasterPlayList)
+	}
+
+	return
+}
 
 type _MasterPlayList struct {
 	parser *_Parser
@@ -48,6 +64,12 @@ func (p *_MasterPlayList) initCurrentSegment() {
 	}
 }
 
+func (p *_Parser) initMaster() {
+	if p.masterpl == nil {
+		p.masterpl = &_MasterPlayList{parser: p}
+	}
+}
+
 func (p *_Parser) checkForMaster() (err error) {
 	if p.masterpl == nil {
 		return
@@ -73,10 +95,7 @@ func (p *_Parser) parseTagForMaster(tag Tag, attr string) (ok bool, err error) {
 		return
 	}
 
-	if p.masterpl == nil {
-		p.masterpl = &_MasterPlayList{parser: p}
-	}
-
+	p.initMaster()
 	err = p.masterpl.parseTag(tag, attr)
 	return
 }

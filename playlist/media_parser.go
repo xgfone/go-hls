@@ -14,11 +14,27 @@
 
 package playlist
 
-import "errors"
+import (
+	"errors"
+	"io"
+)
 
 var (
 	errMissingMediaSegments = errors.New("missing media segments")
 )
+
+// Parse reads the data from r and parses it as the media playlist.
+func (pl *MediaPlayList) Parse(r io.Reader) (err error) {
+	var p _Parser
+	p.initMedia()
+
+	_pl, err := p.Parse(r)
+	if err == nil {
+		*pl = _pl.(MediaPlayList)
+	}
+
+	return
+}
 
 type _MediaPlayList struct {
 	parser *_Parser
@@ -60,6 +76,12 @@ func (p *_MediaPlayList) initCurrentMediaSegment() {
 	}
 }
 
+func (p *_Parser) initMedia() {
+	if p.mediapl == nil {
+		p.mediapl = &_MediaPlayList{parser: p}
+	}
+}
+
 func (p *_Parser) checkForMedia() (err error) {
 	if p.mediapl == nil {
 		return
@@ -97,10 +119,7 @@ func (p *_Parser) parseTagForMedia(tag Tag, attr string) (ok bool, err error) {
 		return
 	}
 
-	if p.mediapl == nil {
-		p.mediapl = &_MediaPlayList{parser: p}
-	}
-
+	p.initMedia()
 	err = p.mediapl.parseTag(tag, attr)
 	return
 }
