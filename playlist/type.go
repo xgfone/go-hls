@@ -34,8 +34,8 @@ var (
 
 // XByteRange represents a byte range for download.
 type XByteRange struct {
-	Length uint64
-	Offset uint64
+	Length uint64 `json:",omitempty,omitzero"`
+	Offset uint64 `json:",omitempty,omitzero"`
 }
 
 func (v XByteRange) minVersion() (version uint64) {
@@ -103,8 +103,8 @@ func (v *XByteRange) decode(s string) (err error) {
 
 // XResolution represents a resolution ratio, that's, WidthxHeight.
 type XResolution struct {
-	Width  uint64 // Required. Unit: byte
-	Height uint64 // Optional. Unit: byte
+	Width  uint64 `json:",omitempty,omitzero"` // Required. Unit: byte
+	Height uint64 `json:",omitempty,omitzero"` // Optional. Unit: byte
 }
 
 func (v XResolution) IsZero() bool {
@@ -168,11 +168,11 @@ func FormatIV(iv []byte, strict bool) string {
 }
 
 type XKey struct {
-	Method  string // Required
-	URI     string
-	IV      string // a hexadecimal-sequence string with the prefix "0x" or "0X".
-	Format  string
-	Version string
+	Method  string `json:",omitempty,omitzero"` // Required
+	URI     string `json:",omitempty,omitzero"`
+	IV      string `json:",omitempty,omitzero"` // a hexadecimal-sequence string with the prefix "0x" or "0X".
+	Format  string `json:",omitempty,omitzero"`
+	Version string `json:",omitempty,omitzero"`
 }
 
 func (x XKey) minVersion() (version uint64) {
@@ -299,9 +299,9 @@ func (x *XKey) _check() (err error) {
 /// ----------------------------------------------------------------------- ///
 
 type XMap struct {
-	URI string // Required
+	URI string `json:",omitempty,omitzero"` // Required
 
-	ByteRange XByteRange
+	ByteRange XByteRange `json:",omitzero"`
 }
 
 func (x XMap) IsZero() bool { return x.URI == "" }
@@ -367,19 +367,19 @@ const (
 )
 
 type XMedia struct {
-	Type            string // Required
-	Name            string // Required
-	GroupId         string // Required
-	Language        string
-	AssocLanguage   string
-	InstreamId      string
-	Characteristics string
-	Channels        string
-	URI             string
+	Type            string `json:",omitempty,omitzero"` // Required
+	Name            string `json:",omitempty,omitzero"` // Required
+	GroupId         string `json:",omitempty,omitzero"` // Required
+	Language        string `json:",omitempty,omitzero"`
+	AssocLanguage   string `json:",omitempty,omitzero"`
+	InstreamId      string `json:",omitempty,omitzero"`
+	Characteristics string `json:",omitempty,omitzero"`
+	Channels        string `json:",omitempty,omitzero"`
+	URI             string `json:",omitempty,omitzero"`
 
-	AutoSelect bool
-	Default    bool
-	Forced     bool
+	AutoSelect bool `json:",omitempty,omitzero"`
+	Default    bool `json:",omitempty,omitzero"`
+	Forced     bool `json:",omitempty,omitzero"`
 }
 
 func (x XMedia) IsZero() bool {
@@ -614,20 +614,20 @@ const (
 )
 
 type XStreamInf struct {
-	URI string // Required
+	URI string `json:",omitempty,omitzero"` // Required
 
-	Bandwidth        uint64 // Required. Unit: bit/s
-	AverageBandwidth uint64 // Optional. Unit: bit/s
+	Bandwidth        uint64 `json:",omitempty,omitzero"` // Required. Unit: bit/s
+	AverageBandwidth uint64 `json:",omitempty,omitzero"` // Optional. Unit: bit/s
 
-	Codecs     []string
-	HdcpLevel  string
-	FrameRate  float64
-	Resolution XResolution
+	Codecs     []string    `json:",omitempty,omitzero"`
+	HdcpLevel  string      `json:",omitempty,omitzero"`
+	FrameRate  float64     `json:",omitempty,omitzero"`
+	Resolution XResolution `json:",omitzero"`
 
-	Audio          string
-	Video          string
-	Subtitles      string
-	ClosedCaptions string
+	Audio          string `json:",omitempty,omitzero"`
+	Video          string `json:",omitempty,omitzero"`
+	Subtitles      string `json:",omitempty,omitzero"`
+	ClosedCaptions string `json:",omitempty,omitzero"`
 }
 
 func (x XStreamInf) IsZero() bool {
@@ -751,16 +751,16 @@ func (x XStreamInf) check(uri bool) (err error) {
 /// ----------------------------------------------------------------------- ///
 
 type XIFrameStreamInf struct {
-	URI string // Required
+	URI string `json:",omitempty,omitzero"` // Required
 
-	Bandwidth        uint64 // Required. Unit: bit/s
-	AverageBandwidth uint64 // Optional. Unit: bit/s
+	Bandwidth        uint64 `json:",omitempty,omitzero"` // Required. Unit: bit/s
+	AverageBandwidth uint64 `json:",omitempty,omitzero"` // Optional. Unit: bit/s
 
-	Codecs     []string
-	HdcpLevel  string
-	Resolution XResolution
+	Codecs     []string    `json:",omitempty,omitzero"`
+	HdcpLevel  string      `json:",omitempty,omitzero"`
+	Resolution XResolution `json:",omitzero"`
 
-	Video string
+	Video string `json:",omitempty,omitzero"`
 }
 
 func (x XIFrameStreamInf) IsZero() bool {
@@ -850,10 +850,10 @@ func (x XIFrameStreamInf) check() (err error) {
 /// ----------------------------------------------------------------------- ///
 
 type XSessionData struct {
-	DataId   string
-	Value    string
-	URI      string
-	Language string
+	DataId   string `json:",omitempty,omitzero"`
+	Value    string `json:",omitempty,omitzero"`
+	URI      string `json:",omitempty,omitzero"`
+	Language string `json:",omitempty,omitzero"`
 }
 
 func (x XSessionData) IsZero() bool {
@@ -919,8 +919,8 @@ func (x XSessionData) check() (err error) {
 /// ----------------------------------------------------------------------- ///
 
 type XStart struct {
-	TimeOffset float64 // Required. Unit: Second
-	Precise    bool
+	TimeOffset float64 `json:",omitempty,omitzero"` // Required. Unit: Second
+	Precise    bool    `json:",omitempty,omitzero"`
 }
 
 func (x XStart) IsZero() bool { return x.TimeOffset == 0 }

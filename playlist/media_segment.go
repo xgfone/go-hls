@@ -27,20 +27,20 @@ import (
 //
 // [RFC 8216, 4.3.2]: https://datatracker.ietf.org/doc/html/rfc8216#section-4.3.2
 type MediaSegment struct {
-	URI   string // Required.
-	Title string
+	URI   string `json:",omitempty,omitzero"` // Required.
+	Title string `json:",omitempty,omitzero"`
 
-	Duration  float64 // Required. Unit: Second
-	ByteRange XByteRange
-	Keys      []XKey
-	Map       XMap
+	Duration  float64    `json:",omitempty,omitzero"` // Required. Unit: Second
+	ByteRange XByteRange `json:",omitzero"`
+	Keys      []XKey     `json:",omitempty,omitzero"`
+	Map       XMap       `json:",omitzero"`
 
-	ProgramDateTime time.Time
+	ProgramDateTime time.Time `json:",omitempty,omitzero"`
 
-	MediaSequence         uint64 // Cannot be encoded
-	DiscontinuitySequence uint64 // Cannot be encoded
+	MediaSequence         uint64 `json:",omitempty,omitzero"` // Cannot be encoded
+	DiscontinuitySequence uint64 `json:",omitempty,omitzero"` // Cannot be encoded
 
-	Discontinuity bool
+	Discontinuity bool `json:",omitempty,omitzero"`
 }
 
 func (s *MediaSegment) nextProgramDateTime(duration float64) time.Time {

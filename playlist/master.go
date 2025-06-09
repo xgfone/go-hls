@@ -21,22 +21,22 @@ import (
 
 // MasterSegment represents a master segment in a master playlist.
 type MasterSegment struct {
-	Stream XStreamInf
+	Stream XStreamInf `json:",omitzero"`
 
-	Medias        []XMedia
-	IFrameStreams []XIFrameStreamInf
-	SessionDatas  []XSessionData
-	SessionKeys   []XKey
+	Medias        []XMedia           `json:",omitempty,omitzero"`
+	IFrameStreams []XIFrameStreamInf `json:",omitempty,omitzero"`
+	SessionDatas  []XSessionData     `json:",omitempty,omitzero"`
+	SessionKeys   []XKey             `json:",omitempty,omitzero"`
 }
 
 // MasterPlayList represents a master playlist, which implemented the PlayList interface.
 type MasterPlayList struct {
-	Version uint64
-	Start   XStart
+	Version uint64 `json:",omitempty,omitzero"`
+	Start   XStart `json:",omitzero"`
 
-	Segments []MasterSegment
+	Segments []MasterSegment `json:",omitempty,omitzero"`
 
-	IndependentSegments bool
+	IndependentSegments bool `json:",omitempty,omitzero"`
 }
 
 // Type returns the fixed "Master".

@@ -27,18 +27,18 @@ const (
 
 // MediaPlayList represents a media playlist, which implemented the PlayList interface.
 type MediaPlayList struct {
-	Version uint64
+	Version uint64 `json:",omitempty,omitzero"`
 
-	Start    XStart
-	Segments []MediaSegment
+	Start    XStart         `json:",omitzero"`
+	Segments []MediaSegment `json:",omitempty,omitzero"`
 
-	TargetDuration        uint64 // Unit: second
-	MediaSequence         uint64
-	DiscontinuitySequence uint64
-	PlayListType          string
-	IndependentSegments   bool
-	IFrameOnly            bool
-	EndList               bool
+	TargetDuration        uint64 `json:",omitempty,omitzero"` // Unit: second
+	MediaSequence         uint64 `json:",omitempty,omitzero"`
+	DiscontinuitySequence uint64 `json:",omitempty,omitzero"`
+	PlayListType          string `json:",omitempty,omitzero"`
+	IndependentSegments   bool   `json:",omitempty,omitzero"`
+	IFrameOnly            bool   `json:",omitempty,omitzero"`
+	EndList               bool   `json:",omitempty,omitzero"`
 }
 
 // Type returns the fixed "Media".
