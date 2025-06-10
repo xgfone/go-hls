@@ -19,8 +19,8 @@ import (
 	"io"
 )
 
-// MasterSegment represents a master segment in a master playlist.
-type MasterSegment struct {
+// MasterStream represents a master stream in a master playlist.
+type MasterStream struct {
 	Stream XStreamInf `json:",omitzero"`
 
 	Medias        []XMedia           `json:",omitempty,omitzero"`
@@ -34,7 +34,7 @@ type MasterPlayList struct {
 	Version uint64 `json:",omitempty,omitzero"`
 	Start   XStart `json:",omitzero"`
 
-	Segments []MasterSegment `json:",omitempty,omitzero"`
+	Streams []MasterStream `json:",omitempty,omitzero"`
 
 	IndependentSegments bool `json:",omitempty,omitzero"`
 }
@@ -65,8 +65,8 @@ func (pl MasterPlayList) minVersion() (minVersion uint64) {
 		minVersion = max(minVersion, version)
 	}
 
-	for _, seg := range pl.Segments {
-		for _, m := range seg.Medias {
+	for _, s := range pl.Streams {
+		for _, m := range s.Medias {
 			setVersion(m.minVersion())
 		}
 	}
@@ -75,15 +75,15 @@ func (pl MasterPlayList) minVersion() (minVersion uint64) {
 }
 
 func (pl MasterPlayList) validate() (err error) {
-	for _, seg := range pl.Segments {
-		if seg.Stream.URI == "" {
+	for _, s := range pl.Streams {
+		if s.Stream.URI == "" {
 			return errors.New(string(EXT_X_STREAM_INF) + ": missing URI")
 		}
-		if err = checkXMedias(seg.Medias); err != nil {
+		if err = checkXMedias(s.Medias); err != nil {
 			return err
 		}
 
-		for _, key := range seg.SessionKeys {
+		for _, key := range s.SessionKeys {
 			if key.Method == XKeyMethodNone {
 				return errors.New(string(EXT_X_SESSION_KEY) + ": METHOD must not be NONE")
 			}

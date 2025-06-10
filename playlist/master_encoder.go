@@ -27,17 +27,17 @@ func (pl MasterPlayList) encode(w io.Writer) (err error) {
 	err = tryWriteTag(w, err, EXT_X_INDEPENDENT_SEGMENTS, _Bool(pl.IndependentSegments))
 	err = tryWriteTag(w, err, EXT_X_START, pl.Start)
 
-	for _, seg := range pl.Segments {
+	for _, s := range pl.Streams {
 		if err != nil {
 			break
 		}
 
-		err = tryWriteMasterTags(w, err, EXT_X_SESSION_KEY, seg.SessionKeys)
-		err = tryWriteMasterTags(w, err, EXT_X_SESSION_DATA, seg.SessionDatas)
-		err = tryWriteMasterTags(w, err, EXT_X_MEDIA, seg.Medias)
-		err = tryWriteMasterTags(w, err, EXT_X_I_FRAME_STREAM_INF, seg.IFrameStreams)
+		err = tryWriteMasterTags(w, err, EXT_X_SESSION_KEY, s.SessionKeys)
+		err = tryWriteMasterTags(w, err, EXT_X_SESSION_DATA, s.SessionDatas)
+		err = tryWriteMasterTags(w, err, EXT_X_MEDIA, s.Medias)
+		err = tryWriteMasterTags(w, err, EXT_X_I_FRAME_STREAM_INF, s.IFrameStreams)
 
-		err = tryWriteTag(w, err, EXT_X_STREAM_INF, seg.Stream)
+		err = tryWriteTag(w, err, EXT_X_STREAM_INF, s.Stream)
 	}
 
 	return

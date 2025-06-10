@@ -55,10 +55,10 @@ hi/main/audio-video.m3u8
 		t.Errorf("expect min version %d, but got %d", 1, master.MinVersion())
 	}
 
-	for i, seg := range master.Segments {
+	for i, s := range master.Streams {
 		switch i {
 		case 0:
-			testMasterSegment(t, seg, MasterSegment{
+			testMasterSegment(t, s, MasterStream{
 				Stream: XStreamInf{Bandwidth: 1280000, Codecs: []string{"mp4a.40.5"}, Video: "low", URI: "low/main/audio-video.m3u8"},
 				Medias: []XMedia{
 					{Type: XMediaTypeVideo, GroupId: "low", Name: "Main", Default: true, URI: "low/main/audio-video.m3u8"},
@@ -68,7 +68,7 @@ hi/main/audio-video.m3u8
 			})
 
 		case 1:
-			testMasterSegment(t, seg, MasterSegment{
+			testMasterSegment(t, s, MasterStream{
 				Stream: XStreamInf{Bandwidth: 2560000, Codecs: []string{"mp4a.40.5"}, Video: "mid", URI: "mid/main/audio-video.m3u8"},
 				Medias: []XMedia{
 					{Type: XMediaTypeVideo, GroupId: "mid", Name: "Main", Default: true, URI: "mid/main/audio-video.m3u8"},
@@ -78,7 +78,7 @@ hi/main/audio-video.m3u8
 			})
 
 		case 2:
-			testMasterSegment(t, seg, MasterSegment{
+			testMasterSegment(t, s, MasterStream{
 				Stream: XStreamInf{Bandwidth: 7680000, Codecs: []string{"mp4a.40.5"}, Video: "hi", URI: "hi/main/audio-video.m3u8"},
 				Medias: []XMedia{
 					{Type: XMediaTypeVideo, GroupId: "hi", Name: "Main", Default: true, URI: "hi/main/audio-video.m3u8"},
@@ -93,7 +93,7 @@ hi/main/audio-video.m3u8
 	}
 }
 
-func testMasterSegment(t *testing.T, value, expect MasterSegment) {
+func testMasterSegment(t *testing.T, value, expect MasterStream) {
 	if !reflect.DeepEqual(value, expect) {
 		t.Errorf("expect %+v, but got %+v", expect, value)
 	}

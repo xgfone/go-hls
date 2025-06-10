@@ -41,20 +41,19 @@ func (pl *MasterPlayList) ParseWithOptions(r io.Reader, options ...Option) (err 
 
 type _MasterPlayList struct {
 	parser *_Parser
-
 	master MasterPlayList
 
-	curseg   *MasterSegment
-	segcache MasterSegment
+	curstream *MasterStream
+	scache    MasterStream
 }
 
 func (p *_MasterPlayList) PlayList() MasterPlayList {
 	p.master.IndependentSegments = p.parser.independentSegments
 	p.master.Version = p.parser.version
 	p.master.Start = p.parser.start
-	sort.Slice(p.master.Segments, func(i, j int) bool {
-		si := &p.master.Segments[i]
-		sj := &p.master.Segments[j]
+	sort.Slice(p.master.Streams, func(i, j int) bool {
+		si := &p.master.Streams[i]
+		sj := &p.master.Streams[j]
 		if si.Stream.Resolution.Width == sj.Stream.Resolution.Width {
 			return si.Stream.Resolution.Height > sj.Stream.Resolution.Height
 		}
@@ -64,17 +63,17 @@ func (p *_MasterPlayList) PlayList() MasterPlayList {
 }
 
 func (p *_MasterPlayList) setURI(uri string) {
-	if p.curseg != nil {
-		p.curseg.Stream.URI = uri
-		p.master.Segments = append(p.master.Segments, *p.curseg)
-		p.curseg = nil
+	if p.curstream != nil {
+		p.curstream.Stream.URI = uri
+		p.master.Streams = append(p.master.Streams, *p.curstream)
+		p.curstream = nil
 	}
 }
 
 func (p *_MasterPlayList) initCurrentSegment() {
-	if p.curseg == nil {
-		p.segcache = MasterSegment{}
-		p.curseg = &p.segcache
+	if p.curstream == nil {
+		p.scache = MasterStream{}
+		p.curstream = &p.scache
 		p.parser.uri = p
 	}
 }
@@ -122,20 +121,20 @@ func (p *_MasterPlayList) parseTag(tag Tag, attr string) (err error) {
 		p.initCurrentSegment()
 		var media XMedia
 		if err = media.decode(attr); err == nil {
-			p.curseg.Medias = append(p.curseg.Medias, media)
+			p.curstream.Medias = append(p.curstream.Medias, media)
 		}
 
 	case EXT_X_STREAM_INF:
 		// RFC 8216, 4.3.4.2:
 		p.initCurrentSegment()
-		err = p.curseg.Stream.decode(attr)
+		err = p.curstream.Stream.decode(attr)
 
 	case EXT_X_I_FRAME_STREAM_INF:
 		// RFC 8216, 4.3.4.3:
 		p.initCurrentSegment()
 		var stream XIFrameStreamInf
 		if err = stream.decode(attr); err == nil {
-			p.curseg.IFrameStreams = append(p.curseg.IFrameStreams, stream)
+			p.curstream.IFrameStreams = append(p.curstream.IFrameStreams, stream)
 		}
 
 	case EXT_X_SESSION_DATA:
@@ -143,7 +142,7 @@ func (p *_MasterPlayList) parseTag(tag Tag, attr string) (err error) {
 		p.initCurrentSegment()
 		var sdata XSessionData
 		if err = sdata.decode(attr); err == nil {
-			p.curseg.SessionDatas = append(p.curseg.SessionDatas, sdata)
+			p.curstream.SessionDatas = append(p.curstream.SessionDatas, sdata)
 		}
 
 	case EXT_X_SESSION_KEY:
@@ -154,7 +153,7 @@ func (p *_MasterPlayList) parseTag(tag Tag, attr string) (err error) {
 			if xkey.Method == XKeyMethodNone {
 				err = errors.New("METHOD must not be NONE")
 			} else {
-				p.curseg.SessionKeys = append(p.curseg.SessionKeys, xkey)
+				p.curstream.SessionKeys = append(p.curstream.SessionKeys, xkey)
 			}
 		}
 	}

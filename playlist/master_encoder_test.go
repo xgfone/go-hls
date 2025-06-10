@@ -33,7 +33,7 @@ http://example.com/audio-only.m3u8
 `
 
 	pl := MasterPlayList{
-		Segments: []MasterSegment{
+		Streams: []MasterStream{
 			{Stream: XStreamInf{Bandwidth: 1280000, AverageBandwidth: 1000000, URI: "http://example.com/low.m3u8"}},
 			{Stream: XStreamInf{Bandwidth: 2560000, AverageBandwidth: 2000000, URI: "http://example.com/mid.m3u8"}},
 			{Stream: XStreamInf{Bandwidth: 7680000, AverageBandwidth: 6000000, URI: "http://example.com/hi.m3u8"}},
@@ -67,7 +67,7 @@ audio-only.m3u8
 `
 
 	pl := MasterPlayList{
-		Segments: []MasterSegment{
+		Streams: []MasterStream{
 			{
 				Stream: XStreamInf{Bandwidth: 1280000, URI: "low/audio-video.m3u8"},
 			},
@@ -118,7 +118,7 @@ main/english-audio.m3u8
 `
 
 	pl := MasterPlayList{
-		Segments: []MasterSegment{
+		Streams: []MasterStream{
 			{
 				Stream: XStreamInf{Bandwidth: 1280000, Codecs: []string{"mp4a.40.5"}, Audio: "aac", URI: "low/video-only.m3u8"},
 				Medias: []XMedia{
@@ -163,7 +163,7 @@ hi/main/audio-video.m3u8
 `
 
 	pl := MasterPlayList{
-		Segments: []MasterSegment{
+		Streams: []MasterStream{
 			{
 				Stream: XStreamInf{Bandwidth: 1280000, Codecs: []string{"mp4a.40.5"}, Video: "low", URI: "low/main/audio-video.m3u8"},
 				Medias: []XMedia{
