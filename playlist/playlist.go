@@ -31,7 +31,8 @@ type PlayList interface {
 }
 
 // Parse reads the data from r and decodes it as a master or media playlist.
-func Parse(r io.Reader) (PlayList, error) {
+func Parse(r io.Reader, options ...Option) (PlayList, error) {
 	var p _Parser
+	p.configure(options...)
 	return p.Parse(r)
 }

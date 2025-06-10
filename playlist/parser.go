@@ -31,6 +31,14 @@ var (
 	errMixedMasterMedia = errors.New("mixed master and media playlist tags")
 )
 
+// Strict returns a configure option to set the parser to the strict mode.
+func Strict() Option {
+	return func(p *_Parser) { p.strict = true }
+}
+
+// Option is used to configure the parser.
+type Option any
+
 type _URISetter interface {
 	setURI(uri string)
 }
@@ -49,6 +57,12 @@ type _Parser struct {
 	independentSegments bool
 
 	strict bool
+}
+
+func (p *_Parser) configure(options ...Option) {
+	for _, o := range options {
+		o.(func(*_Parser))(p)
+	}
 }
 
 func (p *_Parser) readline(r *textproto.Reader) (err error) {
