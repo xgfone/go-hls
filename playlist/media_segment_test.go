@@ -19,7 +19,37 @@ import (
 	"time"
 )
 
-func TestMediaSegmentIndex(t *testing.T) {
+func TestMediaSegmentIndexByDuration(t *testing.T) {
+	pl := MediaPlayList{
+		TargetDuration: 10,
+		Segments: []MediaSegment{
+			{URI: "segment-1.ts", Duration: 9},
+			{URI: "segment-2.ts", Duration: 8},
+			{URI: "segment-3.ts", Duration: 7},
+			{URI: "segment-4.ts", Duration: 6},
+			{URI: "segment-5.ts", Duration: 5},
+			{URI: "segment-6.ts", Duration: 4},
+			{URI: "segment-7.ts", Duration: 3},
+			{URI: "segment-8.ts", Duration: 2},
+			{URI: "segment-9.ts", Duration: 1},
+		},
+	}
+
+	if index := pl.GetSegmentIndexByDuration(1); index != 0 {
+		t.Errorf("expect segment index %d, but got %d", 0, index)
+	}
+	if index := pl.GetSegmentIndexByDuration(30); index != 4 {
+		t.Errorf("expect segment index %d, but got %d", 4, index)
+	}
+	if index := pl.GetSegmentIndexByDuration(44); index != 8 {
+		t.Errorf("expect segment index %d, but got %d", 8, index)
+	}
+	if index := pl.GetSegmentIndexByDuration(45); index != -1 {
+		t.Errorf("expect segment index %d, but got %d", -1, index)
+	}
+}
+
+func TestMediaSegmentIndexByMediaSequence(t *testing.T) {
 	pl := MediaPlayList{
 		MediaSequence: 100,
 		Segments:      make([]MediaSegment, 10),

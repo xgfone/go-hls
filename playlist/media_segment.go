@@ -102,3 +102,18 @@ func (pl MediaPlayList) GetSegmentIndexByMediaSequence(seq uint64) (index int) {
 
 	return
 }
+
+// GetSegmentIndexByDuration returns the index of the media segment
+// that the total duration of reaching it contains the given duration seconds.
+//
+// Return -1 if not found.
+func (pl MediaPlayList) GetSegmentIndexByDuration(durationSecond float64) (index int) {
+	var total float64
+	for i := range pl.Segments {
+		total += pl.Segments[i].Duration
+		if total > durationSecond {
+			return i
+		}
+	}
+	return -1
+}
