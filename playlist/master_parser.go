@@ -22,8 +22,14 @@ import (
 
 // Parse reads the data from r and parses it as the master playlist.
 func (pl *MasterPlayList) Parse(r io.Reader) (err error) {
+	return pl.ParseWithOptions(r)
+}
+
+// ParseWithOptions reads the data from r and parses it with options as the master playlist.
+func (pl *MasterPlayList) ParseWithOptions(r io.Reader, options ...Option) (err error) {
 	var p _Parser
 	p.initMaster()
+	p.configure(options...)
 
 	_pl, err := p.Parse(r)
 	if err == nil {

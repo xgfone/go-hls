@@ -20,13 +20,20 @@ import (
 )
 
 var (
-	errMissingMediaSegments = errors.New("missing media segments")
+	errMissingMediaSegments  = errors.New("missing media segments")
+	errNotBeforeMediaSegment = errors.New("must appear before any media segments")
 )
 
 // Parse reads the data from r and parses it as the media playlist.
 func (pl *MediaPlayList) Parse(r io.Reader) (err error) {
+	return pl.ParseWithOptions(r)
+}
+
+// ParseWithOptions reads the data from r and parses it with options as the media playlist.
+func (pl *MediaPlayList) ParseWithOptions(r io.Reader, options ...Option) (err error) {
 	var p _Parser
 	p.initMedia()
+	p.configure(options...)
 
 	_pl, err := p.Parse(r)
 	if err == nil {
@@ -235,7 +242,7 @@ func (p *_MediaPlayList) parseTag(tag Tag, attr string) (err error) {
 			var seq _DecimalInteger
 			if err = seq.decode(attr, 1); err == nil {
 				if len(p.media.Segments) > 0 || p.curseg != nil {
-					err = errors.New("must appear before any media segments")
+					err = errNotBeforeMediaSegment
 				} else {
 					p.media.DiscontinuitySequence = seq.get()
 				}
