@@ -23,6 +23,9 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/xgfone/go-toolkit/httpx"
+	"github.com/xgfone/go-toolkit/httpx/option"
 )
 
 func TestDownload(t *testing.T) {
@@ -56,7 +59,7 @@ func TestDownload(t *testing.T) {
 			Body:       io.NopCloser(strings.NewReader(ranger)),
 		}, nil
 	}
-	Set(DoFunc(do))
+	httpx.SetClient(httpx.DoFunc(do))
 
 	const (
 		baseurl = "http://localhost/dir"
@@ -78,7 +81,7 @@ func TestDownload(t *testing.T) {
 	}
 
 	const expectbody = "0-99"
-	err = Download(context.Background(), url, bodydo, ByteRange(0, 100))
+	err = Get(context.Background(), url, bodydo, option.ByteRange(0, 100))
 	if err != nil {
 		t.Fatal(err)
 	} else if body != expectbody {

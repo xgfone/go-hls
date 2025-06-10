@@ -23,53 +23,25 @@ import (
 	"net/url"
 	"strings"
 	"unsafe"
+
+	"github.com/xgfone/go-toolkit/httpx"
+	"github.com/xgfone/go-toolkit/httpx/option"
 )
 
-// Option is used to configure the request.
-type Option func(r *http.Request)
+// Get is a convenient function to download something by HTTP.
+func Get(ctx context.Context, url string, do func(http.Header, io.Reader) error, options ...option.Option) error {
+	return httpx.Get(ctx, url, func(r *http.Response) (err error) {
+		if r.StatusCode < 200 || r.StatusCode >= 300 {
+			data, err := io.ReadAll(r.Body)
+			if err != nil {
+				return fmt.Errorf("statuscode=%d, err=%w", r.StatusCode, err)
+			}
 
-// ByteRange returns a request option to add the http request header "Range".
-//
-// start may be equal to 0, but length not.
-func ByteRange(start, length uint64) Option {
-	if length == 0 {
-		panic("ByteRange: length must not be equal to 0")
-	}
-
-	end := start + length - 1
-	return func(r *http.Request) {
-		r.Header.Set("Range", fmt.Sprintf("bytes=%d-%d", start, end))
-	}
-}
-
-// Download is a convenient function to download something by HTTP.
-func Download(ctx context.Context, url string, do func(http.Header, io.Reader) error, options ...Option) error {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		return err
-	}
-
-	for _, o := range options {
-		o(req)
-	}
-
-	resp, err := Get().Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		data, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return fmt.Errorf("statuscode=%d, err=%w", resp.StatusCode, err)
+			msg := unsafe.String(unsafe.SliceData(data), len(data))
+			return fmt.Errorf("statuscode=%d, err=%s", r.StatusCode, msg)
 		}
-
-		msg := unsafe.String(unsafe.SliceData(data), len(data))
-		return fmt.Errorf("statuscode=%d, err=%s", resp.StatusCode, msg)
-	}
-
-	return do(resp.Header, resp.Body)
+		return do(r.Header, r.Body)
+	}, options...)
 }
 
 // ResolveURL tries to reslove the relative url based on baseurl
