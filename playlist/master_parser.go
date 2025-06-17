@@ -17,7 +17,6 @@ package playlist
 import (
 	"errors"
 	"io"
-	"sort"
 )
 
 // Parse reads the data from r and parses it as the master playlist.
@@ -51,14 +50,6 @@ func (p *_MasterPlayList) PlayList() MasterPlayList {
 	p.master.IndependentSegments = p.parser.independentSegments
 	p.master.Version = p.parser.version
 	p.master.Start = p.parser.start
-	sort.Slice(p.master.Streams, func(i, j int) bool {
-		si := &p.master.Streams[i]
-		sj := &p.master.Streams[j]
-		if si.Stream.Resolution.Width == sj.Stream.Resolution.Width {
-			return si.Stream.Resolution.Height > sj.Stream.Resolution.Height
-		}
-		return si.Stream.Resolution.Width > sj.Stream.Resolution.Width
-	})
 	return p.master
 }
 
