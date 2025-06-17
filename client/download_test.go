@@ -72,8 +72,8 @@ func TestDownload(t *testing.T) {
 	}
 
 	var body string
-	bodydo := func(header http.Header, r io.Reader) (err error) {
-		data, err := io.ReadAll(r)
+	bodydo := func(r *http.Response) (err error) {
+		data, err := io.ReadAll(r.Body)
 		if err == nil {
 			body = string(data)
 		}

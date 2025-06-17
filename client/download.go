@@ -29,7 +29,7 @@ import (
 )
 
 // Get is a convenient function to download something by HTTP.
-func Get(ctx context.Context, url string, do func(http.Header, io.Reader) error, options ...option.Option) error {
+func Get(ctx context.Context, url string, do func(*http.Response) error, options ...option.Option) error {
 	return httpx.Get(ctx, url, func(r *http.Response) (err error) {
 		if r.StatusCode < 200 || r.StatusCode >= 300 {
 			data, err := io.ReadAll(r.Body)
@@ -40,7 +40,7 @@ func Get(ctx context.Context, url string, do func(http.Header, io.Reader) error,
 			msg := unsafe.String(unsafe.SliceData(data), len(data))
 			return fmt.Errorf("statuscode=%d, err=%s", r.StatusCode, msg)
 		}
-		return do(r.Header, r.Body)
+		return do(r)
 	}, options...)
 }
 
