@@ -47,10 +47,6 @@ func Get(ctx context.Context, url string, do func(http.Header, io.Reader) error,
 // ResolveURL tries to reslove the relative url based on baseurl
 // if uri is relative, and returns it.
 func ResolveURL(baseurl, uri string) (string, error) {
-	if uri == "" {
-		return "", errors.New("missing uri")
-	}
-
 	switch {
 	case uri == "":
 		return "", errors.New("missing uri")
