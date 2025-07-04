@@ -25,7 +25,6 @@ import (
 	"testing"
 
 	"github.com/xgfone/go-toolkit/httpx"
-	"github.com/xgfone/go-toolkit/httpx/option"
 )
 
 func TestDownload(t *testing.T) {
@@ -81,7 +80,7 @@ func TestDownload(t *testing.T) {
 	}
 
 	const expectbody = "0-99"
-	err = Get(context.Background(), url, bodydo, option.ByteRange(0, 100))
+	err = Get(context.Background(), url, bodydo, ByteRange(0, 100))
 	if err != nil {
 		t.Fatal(err)
 	} else if body != expectbody {

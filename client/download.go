@@ -25,12 +25,31 @@ import (
 	"unsafe"
 
 	"github.com/xgfone/go-toolkit/httpx"
-	"github.com/xgfone/go-toolkit/httpx/option"
 )
 
+func request(ctx context.Context, method, url string, body io.Reader,
+	do func(*http.Response) error, options ...Option) (err error) {
+
+	req, err := http.NewRequestWithContext(ctx, method, url, body)
+	if err != nil {
+		return
+	}
+
+	for i := range options {
+		req = options[i](req)
+	}
+
+	resp, err := httpx.GetClient().Do(req)
+	if err != nil {
+		return
+	}
+
+	return do(resp)
+}
+
 // Get is a convenient function to download something by HTTP.
-func Get(ctx context.Context, url string, do func(*http.Response) error, options ...option.Option) error {
-	return httpx.Get(ctx, url, func(r *http.Response) (err error) {
+func Get(ctx context.Context, url string, do func(*http.Response) error, options ...Option) error {
+	return request(ctx, http.MethodGet, url, nil, func(r *http.Response) (err error) {
 		if r.StatusCode < 200 || r.StatusCode >= 300 {
 			data, err := io.ReadAll(r.Body)
 			if err != nil {
